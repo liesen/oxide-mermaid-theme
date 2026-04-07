@@ -1,0 +1,19 @@
+config:
+  theme: base
+  themeVariables:
+    background: "#1c2225"
+    primaryColor: "#1c372e"
+    primaryTextColor: "#48d597"
+    primaryBorderColor: "#48d597"
+    secondaryColor: "#1c372e"
+    tertiaryColor: "#1c2225"
+    lineColor: "#48d597"
+    # fontFamily: sans-serif  Label width does not appear to be working with this setting
+    fontFamily: "Iosevka Nerd Font Mono"
+    titleColor: "#48d597"
+    
+    noteBkgColor: "#1c2225"
+    noteTextColor: "#48d597"
+    noteBorderColor: "#034e3a"
+  flowchart:
+    curve: stepBefore

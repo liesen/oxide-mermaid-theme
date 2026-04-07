@@ -1,0 +1,50 @@
+sequenceDiagram
+    participant External client
+    participant Nexus
+    participant CockroachDB
+    participant Target
+
+    note over Nexus: API request to change configuration
+
+    External client ->> Nexus: reconfigure
+    activate Nexus
+    Nexus ->> CockroachDB: create new generation N for config
+    activate CockroachDB
+    CockroachDB -->> Nexus: ok
+    deactivate CockroachDB
+    Nexus -->> External client: ok
+    deactivate Nexus
+
+    note over Nexus: Activate RPW (Nexus side)
+    activate Nexus
+    Nexus ->> CockroachDB: list targets
+    activate CockroachDB
+    CockroachDB -->> Nexus: list of targets
+    deactivate CockroachDB
+
+    Nexus ->> CockroachDB: fetch intended state
+    activate CockroachDB
+    CockroachDB -->> Nexus: state generation N
+    deactivate CockroachDB
+
+    Nexus ->> Target: you need to update
+    activate Target
+    Target -->> Nexus: ok
+
+    deactivate Nexus
+    note over Nexus: End of RPW (Nexus side)
+
+    note over Target: Activate RPW (Target side)
+    activate Target
+
+    Target ->> Nexus: which generation should I have?
+    activate Nexus
+    Nexus ->> CockroachDB: fetch intended state
+    activate CockroachDB
+    CockroachDB -->> Nexus: generation N
+    deactivate CockroachDB
+    Nexus -->> Target: generation N (includes contents)
+    deactivate Nexus
+
+    deactivate Target
+    note over Target: apply generation N

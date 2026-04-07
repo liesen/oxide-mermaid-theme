@@ -1,0 +1,92 @@
+graph LR
+    subgraph Sled_Interfaces [Sled Interfaces]
+        direction TB
+        Sled_Power_Connector[Sled Power Connector]
+        ExaMax_Connector1[ExaMax Connector]
+        ExaMax_Connector2[ExaMax Connector]
+        ExaMax_Connector3[ExaMax Connector]
+    end
+    
+    subgraph Bench_Interfaces [Bench & Management Interfaces]
+        direction TB
+        Bench_Power_Connector[Bench Power Connector]
+        PCIe_Connector[PCIe Gen4 x16 CEM Connector]
+        Minibar_SP[Ethernet Jack]
+        Sled_SP_Link_0[Ethernet Jack]
+        Sled_SP_Link_1[Ethernet Jack]
+    end
+
+    Hot_Swap_Controller1[Hot Swap Controller]
+    Hot_Swap_Controller2[Hot Swap Controller]
+
+    Bench_Power_Connector --> Hot_Swap_Controller1
+    Hot_Swap_Controller1 -- "54.5V" --> Sled_Power_Connector
+    Bench_Power_Connector --> Hot_Swap_Controller2
+    
+    Minibar_System_Power_Rails[Minibar System Power Rails]
+    Hot_Swap_Controller2 -- "54.5V" --> Minibar_System_Power_Rails
+    
+    eFuse1[eFuse]
+    eFuse2[eFuse]
+    
+    Minibar_System_Power_Rails -- "12V" --> eFuse1
+    Minibar_System_Power_Rails -- "3.3V" --> eFuse2
+    
+    
+    eFuse1 -- "12V" --> PCIe_Connector
+    eFuse2 -- "3.3V" --> PCIe_Connector
+    
+    Sled_Power --- ExaMax_Connector1
+    ExaMax_Connector1 <-- "PCIe Gen3/Gen4 x4" --> PCIe_Connector
+    
+    Clock_Buffer[Clock Buffer]
+    ExaMax_Connector1 -- "PCIe REFCLK" --> Clock_Buffer
+    Clock_Buffer -- "PCIe REFCLK" --> PCIe_Connector
+    
+    Lattice_ECP5_FPGA[Lattice ECP5 FPGA]
+    
+    ExaMax_Connector1 -- "PCIe Aux Signals" --> Lattice_ECP5_FPGA
+    Lattice_ECP5_FPGA -- "Output Enable/Config" --> Clock_Buffer
+    Lattice_ECP5_FPGA <-- "PCIe Aux Signals" --> PCIe_Connector
+    
+    Sled_Power --- ExaMax_Connector2
+    ExaMax_Connector2 <-- "Ignition LVDS" --> Lattice_ECP5_FPGA
+    
+    VSC7448_Switch[VSC7448 Switch]
+    ExaMax_Connector2 <-- "SGMII" --> VSC7448_Switch
+    
+    
+    Sled_Power --- ExaMax_Connector3
+    ExaMax_Connector3 <-- "200G/100GBASE-KR4" --> ExaMax_Connector2
+    ExaMax_Connector3 <-- "Ignition LVDS" --> Lattice_ECP5_FPGA
+    ExaMax_Connector3 <-- "SGMII" --> VSC7448_Switch
+    
+    STM32H753[STM32H753 Service Processor]
+    Lattice_ECP5_FPGA <-- "SPI" --> STM32H753
+    Clock_Buffer <-- "I2C" --> STM32H753
+    
+    LPC55S6x[LPC55S6x RoT]
+    LPC55S6x <-- "SWD" --> STM32H753
+    LPC55S6x <-- "SPI" --> STM32H753
+    
+    Aux_Flash[Aux Flash]
+    Aux_Flash <-- "QUADSPI" --> STM32H753
+    
+    VPD_EEPROM[VPD EEPROM]
+    VPD_EEPROM <-- "I2C" --> STM32H753
+    
+    KSZ8463_Switch[KSZ8463 Switch]
+    STM32H753 <-- "RMII" --> KSZ8463_Switch
+    STM32H753 <-- "SPI" --> KSZ8463_Switch
+
+    VSC8562[VSC8562 PHY]
+    VSC8562 <-- "MIIM" --> STM32H753
+    KSZ8463_Switch <-- "100BASE-FX" --> VSC8562
+    KSZ8463_Switch <-- "100BASE-FX" --> VSC8562
+    
+    VSC8562 <-- "SGMII" --> VSC7448_Switch
+    VSC8562 <-- "SGMII" --> VSC7448_Switch
+    
+    VSP8562 <-- "BASE-T" --> Minibar_SP
+    VSP8562 <-- "BASE-T" --> Sled_SP_Link_0
+    VSP8562 <-- "BASE-T" --> Sled_SP_Link_1
